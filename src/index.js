@@ -1,8 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
 
-import "./styles.css";
-
 class Canvas extends React.Component {
   constructor(props) {
     super(props);
@@ -22,11 +20,19 @@ class Canvas extends React.Component {
     return shaderProgram;
   }
 
+  getShaderProgram() {
+    this.shaderProgram = this.shaderProgram || this.createShaderProgram();
+    return this.shaderProgram;
+  }
+
   getColorFragmentShader() {
     const ctx = this.canvas.getContext("webgl");
     var fs = `
+      precision mediump float;
+      uniform vec4 color;
+        
       void main(void) {
-        gl_FragColor = vec4(1.0, 1.0, 0.5, 1.0);
+        gl_FragColor = color;
       }
     `;
 
@@ -55,20 +61,32 @@ class Canvas extends React.Component {
   }
 
   setVertexCoords(x, y, z) {
+    if (!this.canvas) return;
     const ctx = this.canvas.getContext("webgl");
-    const shaderProgram = this.createShaderProgram();
-    var coords = ctx.getAttribLocation(shaderProgram, "coords");
+
+    const shaderProgram = this.getShaderProgram();
+    const coords = ctx.getAttribLocation(shaderProgram, "coords");
     ctx.vertexAttrib3f(coords, x, y, z);
   }
 
+  setColor(r, g, b, a) {
+    if (!this.canvas) return;
+    const ctx = this.canvas.getContext("webgl");
+    const shaderProgram = this.getShaderProgram();
+    var color = ctx.getUniformLocation(shaderProgram, "color");
+    ctx.uniform4f(color, r, g, b, a);
+  }
+
   componentDidMount() {
+    if (!this.canvas) return;
     const ctx = this.canvas.getContext("webgl");
     ctx.viewport(0, 0, this.canvas.width, this.canvas.height);
     ctx.clearColor(0.813, 0.231, 0.23, 1);
     ctx.clear(ctx.COLOR_BUFFER_BIT);
-    this.createShaderProgram();
-
+    this.setColor();
+    this.setColor(0.2, 0.7, 0.2, 1.0);
     this.setVertexCoords(Math.random(), Math.random(), Math.random());
+    ctx.clear(ctx.COLOR_BUFFER_BIT);
     ctx.drawArrays(ctx.POINTS, 0, 1);
   }
 
