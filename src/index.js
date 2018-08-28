@@ -4,6 +4,11 @@ import ReactDOM from "react-dom";
 import "./styles.css";
 
 class Canvas extends React.Component {
+  constructor(props) {
+    super(props);
+    this.setVertexCoords = this.setVertexCoords.bind(this);
+  }
+
   createShaderProgram() {
     const ctx = this.canvas.getContext("webgl");
     const fragmentShader = this.getColorFragmentShader();
@@ -33,9 +38,12 @@ class Canvas extends React.Component {
 
   getVertexShader() {
     const ctx = this.canvas.getContext("webgl");
+
     const vs = `
+      attribute vec4 coords;
+
       void main(void) {
-          gl_Position = vec4(0, 0, 0.0, 1);
+          gl_Position = coords;
           gl_PointSize = 100.0;
       }
     `;
@@ -46,12 +54,21 @@ class Canvas extends React.Component {
     return vertexShader;
   }
 
+  setVertexCoords(x, y, z) {
+    const ctx = this.canvas.getContext("webgl");
+    const shaderProgram = this.createShaderProgram();
+    var coords = ctx.getAttribLocation(shaderProgram, "coords");
+    ctx.vertexAttrib3f(coords, x, y, z);
+  }
+
   componentDidMount() {
     const ctx = this.canvas.getContext("webgl");
     ctx.viewport(0, 0, this.canvas.width, this.canvas.height);
     ctx.clearColor(0.813, 0.231, 0.23, 1);
     ctx.clear(ctx.COLOR_BUFFER_BIT);
     this.createShaderProgram();
+
+    this.setVertexCoords(Math.random(), Math.random(), Math.random());
     ctx.drawArrays(ctx.POINTS, 0, 1);
   }
 
