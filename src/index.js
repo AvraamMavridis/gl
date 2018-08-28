@@ -20,6 +20,12 @@ class Canvas extends React.Component {
     return shaderProgram;
   }
 
+  getRandomCoord() {
+    const sign = Math.random();
+    const value = Math.random();
+    return sign > 0.5 ? value : -value;
+  }
+
   getShaderProgram() {
     this.shaderProgram = this.shaderProgram || this.createShaderProgram();
     return this.shaderProgram;
@@ -47,10 +53,11 @@ class Canvas extends React.Component {
 
     const vs = `
       attribute vec4 coords;
+      uniform float size;
 
       void main(void) {
           gl_Position = coords;
-          gl_PointSize = 100.0;
+          gl_PointSize = size;
       }
     `;
 
@@ -60,13 +67,27 @@ class Canvas extends React.Component {
     return vertexShader;
   }
 
-  setVertexCoords(x, y, z) {
+  setVertexCoords() {
     if (!this.canvas) return;
+    const vertices = Array.apply(Array, { length: 10000 }).map(
+      this.getRandomCoord
+    );
     const ctx = this.canvas.getContext("webgl");
+    var buffer = ctx.createBuffer();
+    ctx.bindBuffer(ctx.ARRAY_BUFFER, buffer);
+    ctx.bufferData(
+      ctx.ARRAY_BUFFER,
+      new Float32Array(vertices),
+      ctx.STATIC_DRAW
+    );
 
     const shaderProgram = this.getShaderProgram();
     const coords = ctx.getAttribLocation(shaderProgram, "coords");
-    ctx.vertexAttrib3f(coords, x, y, z);
+    const size = ctx.getUniformLocation(shaderProgram, "size");
+    ctx.vertexAttribPointer(coords, 3, ctx.FLOAT, false, 0, 0);
+    ctx.enableVertexAttribArray(coords);
+    ctx.uniform1f(size, Math.random() * 10);
+    ctx.bindBuffer(ctx.ARRAY_BUFFER, null);
   }
 
   setColor(r, g, b, a) {
@@ -77,17 +98,22 @@ class Canvas extends React.Component {
     ctx.uniform4f(color, r, g, b, a);
   }
 
-  componentDidMount() {
+  drawScene() {
     if (!this.canvas) return;
     const ctx = this.canvas.getContext("webgl");
     ctx.viewport(0, 0, this.canvas.width, this.canvas.height);
-    ctx.clearColor(0.813, 0.231, 0.23, 1);
+    ctx.clearColor(Math.random(), Math.random(), Math.random(), 1);
     ctx.clear(ctx.COLOR_BUFFER_BIT);
-    this.setColor();
-    this.setColor(0.2, 0.7, 0.2, 1.0);
-    this.setVertexCoords(Math.random(), Math.random(), Math.random());
+    this.setColor(Math.random(), Math.random(), Math.random(), 1.0);
+    this.setVertexCoords();
     ctx.clear(ctx.COLOR_BUFFER_BIT);
-    ctx.drawArrays(ctx.POINTS, 0, 1);
+    ctx.drawArrays(ctx.POINTS, 0, 1000);
+    // requestAnimationFrame(() => this.drawScene());
+  }
+
+  componentDidMount() {
+    if (!this.canvas) return;
+    this.drawScene();
   }
 
   render() {
