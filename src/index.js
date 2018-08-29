@@ -108,7 +108,7 @@ class Canvas extends React.Component {
     this.setVertexCoords();
     ctx.clear(ctx.COLOR_BUFFER_BIT);
     ctx.drawArrays(ctx.POINTS, 0, 1000);
-    // requestAnimationFrame(() => this.drawScene());
+    requestAnimationFrame(() => this.drawScene());
   }
 
   componentDidMount() {
