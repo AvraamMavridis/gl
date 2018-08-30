@@ -107,13 +107,14 @@ class Canvas extends React.Component {
     this.setColor(Math.random(), Math.random(), Math.random(), 1.0);
     this.setVertexCoords();
     ctx.clear(ctx.COLOR_BUFFER_BIT);
-    ctx.drawArrays(ctx.POINTS, 0, 1000);
-    requestAnimationFrame(() => this.drawScene());
+    ctx.drawArrays(ctx.POINTS, 0, 1000 * Math.random());
   }
 
   componentDidMount() {
     if (!this.canvas) return;
-    this.drawScene();
+    setInterval(() => {
+      requestAnimationFrame(() => this.drawScene());
+    }, 1000);
   }
 
   render() {
